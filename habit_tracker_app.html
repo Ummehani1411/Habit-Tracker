@@ -1,0 +1,240 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.app { background: #FAF6F1; min-height: 600px; border-radius: var(--border-radius-lg); border: 0.5px solid #D9C9B8; overflow: hidden; }
+.header { background: #6B4226; padding: 1.25rem 1.5rem; }
+.header-top { display: flex; align-items: center; justify-content: space-between; }
+.app-title { font-size: 20px; font-weight: 500; color: #FAF6F1; letter-spacing: 0.02em; }
+.app-subtitle { font-size: 12px; color: #D9C9B8; margin-top: 2px; }
+.user-badge { background: #8B5E3C; border-radius: 20px; padding: 5px 12px; font-size: 13px; color: #FAF6F1; display: flex; align-items: center; gap: 6px; cursor: pointer; border: none; }
+.date-bar { background: #8B5E3C; margin: 0 -1.5rem; margin-top: 1rem; padding: 8px 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+.date-text { font-size: 13px; color: #FAF6F1; }
+.progress-text { font-size: 13px; color: #D9C9B8; }
+.progress-bar-wrap { height: 4px; background: #5C3318; border-radius: 2px; margin-top: 8px; }
+.progress-bar-fill { height: 4px; background: #E8C99A; border-radius: 2px; transition: width 0.3s; }
+.body { padding: 1.25rem 1.5rem; }
+.section-head { font-size: 11px; font-weight: 500; color: #8B5E3C; letter-spacing: 0.08em; text-transform: uppercase; margin: 1rem 0 8px; display: flex; align-items: center; gap: 6px; }
+.section-head:first-child { margin-top: 0; }
+.habit-row { display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 0.5px solid #D9C9B8; border-radius: var(--border-radius-md); padding: 10px 14px; margin-bottom: 8px; transition: background 0.15s; }
+.habit-row.done { background: #F5EDE3; }
+.circle-btn { width: 28px; height: 28px; min-width: 28px; border-radius: 50%; border: 2px solid #C4A882; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.circle-btn.checked { background: #6B4226; border-color: #6B4226; }
+.circle-btn i { font-size: 15px; color: #FAF6F1; }
+.habit-icon { font-size: 18px; color: #8B5E3C; }
+.habit-info { flex: 1; }
+.habit-name { font-size: 14px; font-weight: 500; color: #3D2010; }
+.habit-time { font-size: 11px; color: #8B5E3C; margin-top: 1px; }
+.habit-row.done .habit-name { color: #8B5E3C; text-decoration: line-through; }
+.delete-btn { background: none; border: none; cursor: pointer; color: #C4A882; padding: 4px; border-radius: 4px; display: flex; align-items: center; }
+.delete-btn:hover { color: #993C1D; }
+.add-btn { width: 100%; background: #6B4226; color: #FAF6F1; border: none; border-radius: var(--border-radius-md); padding: 11px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 1rem; transition: background 0.15s; }
+.add-btn:hover { background: #8B5E3C; }
+.modal-bg { background: rgba(61,32,16,0.45); min-height: 500px; display: flex; align-items: flex-start; justify-content: center; padding-top: 60px; border-radius: var(--border-radius-lg); }
+.modal { background: #FAF6F1; border-radius: var(--border-radius-lg); border: 0.5px solid #D9C9B8; padding: 1.5rem; width: 92%; max-width: 400px; }
+.modal h3 { font-size: 16px; font-weight: 500; color: #3D2010; margin-bottom: 1rem; }
+.modal label { font-size: 12px; color: #8B5E3C; display: block; margin-bottom: 4px; margin-top: 12px; }
+.modal input, .modal select { width: 100%; border: 0.5px solid #D9C9B8; border-radius: var(--border-radius-md); padding: 8px 10px; font-size: 14px; background: #FFFFFF; color: #3D2010; }
+.modal-btns { display: flex; gap: 8px; margin-top: 1.25rem; }
+.btn-cancel { flex: 1; background: transparent; border: 0.5px solid #D9C9B8; border-radius: var(--border-radius-md); padding: 9px; font-size: 13px; color: #8B5E3C; cursor: pointer; }
+.btn-save { flex: 2; background: #6B4226; border: none; border-radius: var(--border-radius-md); padding: 9px; font-size: 13px; color: #FAF6F1; cursor: pointer; font-weight: 500; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+.stat-card { background: #FFFFFF; border: 0.5px solid #D9C9B8; border-radius: var(--border-radius-md); padding: 10px; text-align: center; }
+.stat-val { font-size: 20px; font-weight: 500; color: #6B4226; }
+.stat-lbl { font-size: 10px; color: #8B5E3C; margin-top: 2px; }
+.user-name-display { font-size: 15px; color: #FAF6F1; font-weight: 500; }
+.empty-msg { text-align: center; font-size: 13px; color: #C4A882; padding: 1rem 0; }
+</style>
+
+<h2 class="sr-only">Habit tracker app — track your daily habits and routines</h2>
+
+<div id="root"></div>
+
+<script>
+const ICONS = {
+  morning: 'ti-sun', fitness: 'ti-run', nutrition: 'ti-apple', mindfulness: 'ti-brain', evening: 'ti-moon', learning: 'ti-book', hydration: 'ti-droplet', hygiene: 'ti-tooth', work: 'ti-briefcase', other: 'ti-star'
+};
+
+const DEFAULT_HABITS = [
+  { id: 1, name: 'Wake up early', time: '5:00 AM', category: 'morning', done: false },
+  { id: 2, name: 'Fajr prayer', time: '5:30 AM', category: 'morning', done: false },
+  { id: 3, name: 'Drink a glass of water', time: '6:00 AM', category: 'hydration', done: false },
+  { id: 4, name: 'Morning walk / exercise', time: '6:30 AM', category: 'fitness', done: false },
+  { id: 5, name: 'Brush teeth & freshen up', time: '7:00 AM', category: 'hygiene', done: false },
+  { id: 6, name: 'Healthy breakfast', time: '7:30 AM', category: 'nutrition', done: false },
+  { id: 7, name: 'Read Quran / journal', time: '8:00 AM', category: 'mindfulness', done: false },
+  { id: 8, name: 'Study / work session', time: '9:00 AM', category: 'work', done: false },
+  { id: 9, name: 'Drink water (2nd glass)', time: '10:00 AM', category: 'hydration', done: false },
+  { id: 10, name: 'Dhuhr prayer', time: '1:00 PM', category: 'mindfulness', done: false },
+  { id: 11, name: 'Healthy lunch', time: '1:30 PM', category: 'nutrition', done: false },
+  { id: 12, name: 'Afternoon learning', time: '3:00 PM', category: 'learning', done: false },
+  { id: 13, name: 'Asr prayer', time: '4:30 PM', category: 'mindfulness', done: false },
+  { id: 14, name: 'Evening walk', time: '5:30 PM', category: 'fitness', done: false },
+  { id: 15, name: 'No screen time 1hr before bed', time: '9:00 PM', category: 'evening', done: false },
+  { id: 16, name: 'Isha prayer', time: '9:30 PM', category: 'mindfulness', done: false },
+  { id: 17, name: 'Skincare routine', time: '10:00 PM', category: 'hygiene', done: false },
+  { id: 18, name: 'Read before sleep', time: '10:30 PM', category: 'evening', done: false },
+];
+
+const CATEGORIES = ['morning','fitness','nutrition','mindfulness','evening','learning','hydration','hygiene','work','other'];
+const CAT_LABELS = { morning:'Morning', fitness:'Fitness', nutrition:'Nutrition', mindfulness:'Mindfulness', evening:'Evening', learning:'Learning', hydration:'Hydration', hygiene:'Hygiene', work:'Work & Study', other:'Other' };
+
+let state = {
+  userName: '',
+  habits: JSON.parse(JSON.stringify(DEFAULT_HABITS)),
+  showModal: false,
+  showNameModal: true,
+  nextId: 100,
+  newHabit: { name: '', time: '', category: 'morning' }
+};
+
+function render() {
+  const root = document.getElementById('root');
+  const done = state.habits.filter(h => h.done).length;
+  const total = state.habits.length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  if (state.showNameModal) {
+    root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <h3>Welcome to Habit Tracker</h3>
+        <p style="font-size:13px;color:#8B5E3C;margin-bottom:8px;">Tell us your name to get started</p>
+        <label>Your name</label>
+        <input type="text" id="name-input" placeholder="e.g. Ummehani" value="${state.userName}" />
+        <div class="modal-btns" style="margin-top:1rem;">
+          <button class="btn-save" style="flex:1" onclick="saveName()"><i class="ti ti-arrow-right" aria-hidden="true"></i> Get started</button>
+        </div>
+      </div>
+    </div>`;
+    setTimeout(() => { const el = document.getElementById('name-input'); if(el) el.focus(); }, 50);
+    return;
+  }
+
+  if (state.showModal) {
+    root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <h3><i class="ti ti-plus" aria-hidden="true" style="margin-right:6px;color:#8B5E3C"></i>Add new habit</h3>
+        <label>Habit name</label>
+        <input type="text" id="h-name" placeholder="e.g. Evening journaling" value="${state.newHabit.name}" oninput="updateNew('name',this.value)" />
+        <label>Time (optional)</label>
+        <input type="text" id="h-time" placeholder="e.g. 7:00 AM" value="${state.newHabit.time}" oninput="updateNew('time',this.value)" />
+        <label>Category</label>
+        <select id="h-cat" onchange="updateNew('category',this.value)">
+          ${CATEGORIES.map(c => `<option value="${c}" ${state.newHabit.category===c?'selected':''}>${CAT_LABELS[c]}</option>`).join('')}
+        </select>
+        <div class="modal-btns">
+          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn-save" onclick="saveHabit()"><i class="ti ti-check" aria-hidden="true"></i> Save habit</button>
+        </div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const grouped = {};
+  CATEGORIES.forEach(c => { grouped[c] = state.habits.filter(h => h.category === c); });
+
+  let sections = '';
+  CATEGORIES.forEach(cat => {
+    const list = grouped[cat];
+    if (!list.length) return;
+    sections += `<div class="section-head"><i class="ti ${ICONS[cat]}" aria-hidden="true"></i>${CAT_LABELS[cat]}</div>`;
+    list.forEach(h => {
+      sections += `
+      <div class="habit-row ${h.done ? 'done' : ''}" id="row-${h.id}">
+        <button class="circle-btn ${h.done ? 'checked' : ''}" onclick="toggle(${h.id})" aria-label="${h.done ? 'Mark incomplete' : 'Mark complete'}: ${h.name}">
+          ${h.done ? '<i class="ti ti-check" aria-hidden="true"></i>' : ''}
+        </button>
+        <i class="ti ${ICONS[h.category]} habit-icon" aria-hidden="true"></i>
+        <div class="habit-info">
+          <div class="habit-name">${h.name}</div>
+          ${h.time ? `<div class="habit-time"><i class="ti ti-clock" style="font-size:11px;vertical-align:-1px" aria-hidden="true"></i> ${h.time}</div>` : ''}
+        </div>
+        <button class="delete-btn" onclick="deleteHabit(${h.id})" aria-label="Delete ${h.name}"><i class="ti ti-trash" style="font-size:15px" aria-hidden="true"></i></button>
+      </div>`;
+    });
+  });
+
+  const initials = state.userName ? state.userName.trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?';
+
+  root.innerHTML = `
+  <div class="app">
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <div class="app-title"><i class="ti ti-checkbox" aria-hidden="true" style="font-size:18px;margin-right:6px;vertical-align:-2px"></i>Habit Tracker</div>
+          <div class="app-subtitle">Hello, ${state.userName || 'friend'} — keep going!</div>
+        </div>
+        <button class="user-badge" onclick="editName()" aria-label="Edit name">
+          <span style="width:22px;height:22px;border-radius:50%;background:#6B4226;border:1.5px solid #E8C99A;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#FAF6F1">${initials}</span>
+          <span>${state.userName || 'Set name'}</span>
+        </button>
+      </div>
+      <div class="date-bar" style="margin-left:-1.5rem;margin-right:-1.5rem;padding-left:1.5rem;padding-right:1.5rem">
+        <span class="date-text"><i class="ti ti-calendar" aria-hidden="true" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>${today}</span>
+        <span class="progress-text">${done}/${total} done</span>
+      </div>
+      <div class="progress-bar-wrap" style="margin-top:10px">
+        <div class="progress-bar-fill" style="width:${pct}%"></div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val">${done}</div>
+          <div class="stat-lbl">Completed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">${total - done}</div>
+          <div class="stat-lbl">Remaining</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">${pct}%</div>
+          <div class="stat-lbl">Progress</div>
+        </div>
+      </div>
+
+      ${sections || '<div class="empty-msg">No habits yet. Add your first one!</div>'}
+
+      <button class="add-btn" onclick="openModal()">
+        <i class="ti ti-plus" aria-hidden="true" style="font-size:17px"></i> Add new habit
+      </button>
+    </div>
+  </div>`;
+}
+
+function toggle(id) {
+  state.habits = state.habits.map(h => h.id === id ? {...h, done: !h.done} : h);
+  render();
+}
+function deleteHabit(id) {
+  state.habits = state.habits.filter(h => h.id !== id);
+  render();
+}
+function openModal() { state.showModal = true; state.newHabit = { name:'', time:'', category:'morning' }; render(); }
+function closeModal() { state.showModal = false; render(); }
+function updateNew(field, val) { state.newHabit[field] = val; }
+function saveHabit() {
+  const name = document.getElementById('h-name')?.value?.trim() || state.newHabit.name.trim();
+  if (!name) { alert('Please enter a habit name.'); return; }
+  const time = document.getElementById('h-time')?.value?.trim() || state.newHabit.time.trim();
+  const cat = document.getElementById('h-cat')?.value || state.newHabit.category;
+  state.habits.push({ id: state.nextId++, name, time, category: cat, done: false });
+  state.showModal = false;
+  render();
+}
+function saveName() {
+  const val = document.getElementById('name-input')?.value?.trim();
+  if (!val) { alert('Please enter your name.'); return; }
+  state.userName = val;
+  state.showNameModal = false;
+  render();
+}
+function editName() { state.showNameModal = true; render(); }
+
+render();
+</script>
